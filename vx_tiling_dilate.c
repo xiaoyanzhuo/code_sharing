@@ -1,114 +1,70 @@
 /*
- * Copyright (c) 2013-2017 The Khronos Group Inc.
+ * Copyright (c) 2013-2014 The Khronos Group Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and/or associated documentation files (the
+ * "Materials"), to deal in the Materials without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Materials, and to
+ * permit persons to whom the Materials are furnished to do so, subject to
+ * the following conditions:
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Materials.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
  */
 
 #include <stdio.h>
-#include <VX/vx.h>
 #include <VX/vx_khr_tiling.h>
-#include <VX/vx_lib_debug.h>
-#include <VX/vx_helper.h>
-#include "vx_tiling_ext.h"
-#define img_w 512
-#define img_h 512
+
 /*! \file
- * \brief An example of how to call the tiling nodes.
- * \example vx_tiling_main.c
+ * \example vx_tiling_dilate.c
  */
 
-vx_node vxTilingDilateNode(vx_graph graph, vx_image in, vx_image out, vx_uint32 width, vx_uint32 height)
+/*! \brief A 3x3 to 1x1 dilate filter
+ * This kernel uses this tiling definition.
+ * \code
+ * vx_block_size_t outSize = {1,1};
+ * vx_neighborhood_size_t inNbhd = {-1,1,-1,1};
+ * \endcode
+ * \ingroup group_tiling
+ */
+//! [dilate_tiling_function]
+void dilate_image_tiling(void * VX_RESTRICT parameters[VX_RESTRICT],
+                      void * VX_RESTRICT tile_memory,
+                      vx_size tile_memory_size)
 {
-    vx_reference params[] = {
-        (vx_reference)in,
-        (vx_reference)out,
-    };
-    vx_node node = vxCreateNodeByStructure(graph,
-                                    VX_KERNEL_DILATE_MxN_TILING,
-                                    params,
-                                    dimof(params));
-    if (node && (width&1) && (height&1))
-    {
-        vx_neighborhood_size_t nbhd;
-        vxQueryNode(node, VX_NODE_INPUT_NEIGHBORHOOD, &nbhd, sizeof(nbhd));
-        nbhd.left = 0 - ((width - 1)/2);
-        nbhd.right = ((width - 1)/2);
-        nbhd.top = 0 - ((height - 1)/2);
-        nbhd.bottom = ((height - 1)/2);
-        vxSetNodeAttribute(node, VX_NODE_INPUT_NEIGHBORHOOD, &nbhd, sizeof(nbhd));
-    }
-    return node;
-}
+    vx_uint32 x, y;
+    vx_tile_t *in = (vx_tile_t *)parameters[0];
+    vx_tile_t *out = (vx_tile_t *)parameters[1];
 
-int main(int argc, char *argv[])
-{
-    vx_status status = VX_SUCCESS;
-    vx_context context = vxCreateContext();
-    if (vxGetStatus((vx_reference)context) == VX_SUCCESS)
+    for (y = 0; y < vxTileHeight(out, 0); y+=vxTileBlockHeight(out))
     {
-        vx_rectangle_t rect = {1, 1, img_w+1, img_h+1}; // 512x512
-        vx_uint32 i = 0;
-        vx_image images[] = {
-                vxCreateImage(context, img_w+2, img_h+2, VX_DF_IMAGE_U8), // 0:input
-                vxCreateImageFromROI(images[0], &rect),       // 1:ROI input
-                vxCreateImage(context, img_w, img_h, VX_DF_IMAGE_U8), // 2:dilate
-        };
-
-        status |= vxLoadKernels(context, "openvx-tiling");
-        status |= vxLoadKernels(context, "openvx-debug");
-        if (status == VX_SUCCESS)
+        for (x = 0; x < vxTileWidth(out, 0); x+=vxTileBlockWidth(out))
         {
-            vx_graph graph = vxCreateGraph(context);
-            if (vxGetStatus((vx_reference)graph) == VX_SUCCESS)
+            vx_int32 j, i;
+            //vx_uint32 min = vxImagePixel(vx_uint8, in, 0, x, y, -1, -1);
+            vx_uint32 max = vxImagePixel(vx_uint8, in, 0, x, y, vxNeighborhoodLeft(in), vxNeighborhoodTop(in));
+            /* these loops can handle 3x3, 5x5, etc. since block size would be 1x1 */
+            for (j = vxNeighborhoodTop(in); j < vxNeighborhoodBottom(in); j++)
             {
-                vx_node nodes[] = {
-                    vxFReadImageNode(graph, "lena_512x512.pgm", images[1]),
-                    vxTilingDilateNode(graph, images[1], images[2], 3, 3),
-                    vxFWriteImageNode(graph, images[2], "tiling_dilate_lena_512x512.pgm"),
-                };
-                for (i = 0; i < dimof(nodes); i++)
+                for (i = vxNeighborhoodLeft(in); i < vxNeighborhoodRight(in); i++)
                 {
-                    if (nodes[i] == 0)
-                    {
-                        printf("Failed to create node[%u]\n", i);
-                        status = VX_ERROR_INVALID_NODE;
-                        break;
-                    }
+                    if (vxImagePixel(vx_uint8, in, 0, x, y, i, j) > max)
+                        max = vxImagePixel(vx_uint8, in, 0, x, y, i, j);
                 }
-                if (status == VX_SUCCESS)
-                {
-                    status = vxVerifyGraph(graph);
-                    if (status == VX_SUCCESS)
-                    {
-                        status = vxProcessGraph(graph);
-                    }
-                }
-                for (i = 0; i < dimof(nodes); i++)
-                {
-                    vxReleaseNode(&nodes[i]);
-                }
-                vxReleaseGraph(&graph);
             }
+            vxImagePixel(vx_uint8, out, 0, x, y, 0, 0) = (vx_uint8)max;
         }
-        // status |= vxUnloadKernels(context, "openvx-debug");
-        // status |= vxUnloadKernels(context, "openvx-tiling");
-        for (i = 0; i < dimof(images); i++)
-        {
-            vxReleaseImage(&images[i]);
-        }
-        vxReleaseContext(&context);
     }
-    printf("%s::main() returns = %d\n", argv[0], status);
-    return (int)status;
 }
+//! [dilate_tiling_function]
+
 
