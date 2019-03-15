@@ -1,0 +1,21 @@
+# started on Fri Mar 15 04:57:16 2019
+
+
+ Performance counter stats for './tiling_alpha':
+
+         316758940      instructions              #    0.86  insns per cycle          (69.56%)
+         367732216      cpu-cycles                                                    (79.11%)
+         145271226      cache-references                                              (80.43%)
+           3579002      cache-misses              #    2.464 % of all cache refs      (80.38%)
+          92900453      L1-dcache-loads                                               (80.16%)
+           2585461      L1-dcache-load-misses     #    2.78% of all L1-dcache hits    (71.28%)
+          53811662      L1-dcache-stores                                              (70.17%)
+   <not supported>      L1-dcache-prefetches     
+     <not counted>      L1-dcache-prefetch-misses  (0.00%)
+         133160155      L1-icache-loads                                               (79.58%)
+           2559512      L1-icache-load-misses                                         (69.75%)
+   <not supported>      L1-icache-prefetches     
+   <not supported>      L1-icache-prefetch-misses
+
+       0.307132778 seconds time elapsed
+

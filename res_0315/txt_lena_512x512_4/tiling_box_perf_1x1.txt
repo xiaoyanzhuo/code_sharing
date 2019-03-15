@@ -1,0 +1,21 @@
+# started on Thu Mar 14 21:50:15 2019
+
+
+ Performance counter stats for './tiling_box':
+
+         110036472      instructions              #    1.33  insns per cycle          (23.23%)
+          82850752      cpu-cycles                                                    (28.35%)
+          58702324      cache-references                                              (29.14%)
+           1102789      cache-misses              #    1.879 % of all cache refs      (29.88%)
+          47680802      L1-dcache-loads                                               (31.30%)
+           1227746      L1-dcache-load-misses     #    2.57% of all L1-dcache hits    (29.65%)
+          10373509      L1-dcache-stores                                              (30.04%)
+   <not supported>      L1-dcache-prefetches     
+            134471      L1-dcache-prefetch-misses                                     (61.97%)
+          37949267      L1-icache-loads                                               (32.44%)
+            220611      L1-icache-load-misses                                         (24.81%)
+   <not supported>      L1-icache-prefetches     
+   <not supported>      L1-icache-prefetch-misses
+
+       0.120588516 seconds time elapsed
+
