@@ -1,0 +1,21 @@
+# started on Fri Mar 15 03:47:46 2019
+
+
+ Performance counter stats for './tiling_add':
+
+          60074610      instructions              #    0.71  insns per cycle          (8.37%)
+          84634432      cpu-cycles                                                    (9.86%)
+          30969589      cache-references                                              (10.36%)
+            791746      cache-misses              #    2.557 % of all cache refs      (10.66%)
+          16138268      L1-dcache-loads                                               (10.66%)
+            659860      L1-dcache-load-misses     #    4.09% of all L1-dcache hits    (9.70%)
+          15057902      L1-dcache-stores                                              (9.70%)
+   <not supported>      L1-dcache-prefetches     
+            867030      L1-dcache-prefetch-misses                                     (87.33%)
+          26224439      L1-icache-loads                                               (9.25%)
+           1958856      L1-icache-load-misses                                         (7.25%)
+   <not supported>      L1-icache-prefetches     
+   <not supported>      L1-icache-prefetch-misses
+
+       0.215741077 seconds time elapsed
+

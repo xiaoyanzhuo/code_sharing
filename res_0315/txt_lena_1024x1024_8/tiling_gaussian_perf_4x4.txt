@@ -1,0 +1,21 @@
+# started on Fri Mar 15 01:03:38 2019
+
+
+ Performance counter stats for './tiling_gaussian':
+
+          54410851      instructions              #    1.19  insns per cycle          (59.39%)
+          45698430      cpu-cycles                                                    (68.59%)
+          24380133      cache-references                                              (68.86%)
+            670387      cache-misses              #    2.750 % of all cache refs      (68.58%)
+          18707389      L1-dcache-loads                                               (70.55%)
+            608363      L1-dcache-load-misses     #    3.25% of all L1-dcache hits    (64.61%)
+           5208044      L1-dcache-stores                                              (64.94%)
+   <not supported>      L1-dcache-prefetches     
+             47383      L1-dcache-prefetch-misses                                     (12.85%)
+          18632308      L1-icache-loads                                               (71.40%)
+            292403      L1-icache-load-misses                                         (59.75%)
+   <not supported>      L1-icache-prefetches     
+   <not supported>      L1-icache-prefetch-misses
+
+       0.084090699 seconds time elapsed
+
